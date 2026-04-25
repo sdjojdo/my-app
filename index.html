@@ -1,0 +1,223 @@
+!DOCTYPE html
+html lang=de
+head
+  meta charset=UTF-8 
+  titleMyBotHosttitle
+  style
+    body {
+      margin 0;
+      font-family Arial, sans-serif;
+      background #f7f9fc;
+      color #0f172a;
+    }
+
+    .sidebar {
+      position fixed;
+      left 0;
+      top 0;
+      width 230px;
+      height 100vh;
+      background white;
+      border-right 1px solid #e5e7eb;
+      padding 25px;
+    }
+
+    .logo {
+      font-size 26px;
+      font-weight bold;
+      margin-bottom 40px;
+    }
+
+    .logo span {
+      color #10b981;
+    }
+
+    .nav {
+      margin 20px 0;
+      color #334155;
+    }
+
+    .main {
+      margin-left 280px;
+      padding 55px;
+      max-width 1000px;
+    }
+
+    h1 {
+      font-size 32px;
+    }
+
+    .card {
+      background white;
+      border 1px solid #dbe3ea;
+      border-radius 12px;
+      box-shadow 0 2px 8px rgba(0,0,0,0.05);
+      margin-top 25px;
+      overflow hidden;
+    }
+
+    .card-header {
+      background #ecfdf5;
+      padding 18px 25px;
+      font-weight bold;
+      color #047857;
+    }
+
+    .card-body {
+      padding 25px;
+    }
+
+    input, button {
+      padding 12px;
+      border-radius 8px;
+      border 1px solid #cbd5e1;
+    }
+
+    button {
+      background #10b981;
+      color white;
+      cursor pointer;
+      border none;
+      font-weight bold;
+    }
+
+    button.danger {
+      background #ef4444;
+    }
+
+    .bot {
+      padding 15px;
+      border-bottom 1px solid #e5e7eb;
+    }
+
+    pre {
+      background #020617;
+      color #22c55e;
+      padding 20px;
+      border-radius 10px;
+      height 300px;
+      overflow auto;
+      white-space pre-wrap;
+    }
+  style
+head
+body
+
+  div class=sidebar
+    div class=logoMyspanBotspanHostdiv
+    div class=nav📦 Applicationsdiv
+    div class=nav➕ Create Botdiv
+    div class=nav📊 Resourcesdiv
+    div class=nav⚙️ Settingsdiv
+  div
+
+  div class=main
+    h1Bot Hosting Agenth1
+    pLade einen Node.js Bot als ZIP hoch. Er braucht eine package.json und ein npm start Script.p
+
+    div class=card
+      div class=card-headerUpload Botdiv
+      div class=card-body
+        input type=file id=botzip accept=.zip
+        button onclick=uploadBot()Upload & Startbutton
+      div
+    div
+
+    div class=card
+      div class=card-headerBotsdiv
+      div class=card-body id=botsKeine Bots geladen.div
+    div
+
+    div class=card
+      div class=card-headerLogsdiv
+      div class=card-body
+        pre id=logsNoch keine Logs.pre
+      div
+    div
+  div
+
+script
+let selectedBot = null;
+
+async function uploadBot() {
+  const file = document.getElementById(botzip).files[0];
+
+  if (!file) {
+    alert(Bitte ZIP auswählen.);
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append(botzip, file);
+
+  const res = await fetch(upload, {
+    method POST,
+    body formData
+  });
+
+  const data = await res.json();
+
+  if (data.error) {
+    alert(data.error);
+    return;
+  }
+
+  selectedBot = data.botId;
+  loadBots();
+}
+
+async function loadBots() {
+  const res = await fetch(bots);
+  const bots = await res.json();
+
+  const div = document.getElementById(bots);
+
+  if (bots.length === 0) {
+    div.innerHTML = Keine Bots geladen.;
+    return;
+  }
+
+  div.innerHTML = bots.map(bot = `
+    div class=bot
+      bBot ${bot.id}bbr
+      Status ${bot.status}brbr
+      button onclick=selectBot('${bot.id}')Logs anzeigenbutton
+      button class=danger onclick=stopBot('${bot.id}')Stopbutton
+    div
+  `).join();
+}
+
+function selectBot(id) {
+  selectedBot = id;
+  loadLogs();
+}
+
+async function loadLogs() {
+  if (!selectedBot) return;
+
+  const res = await fetch(logs + selectedBot);
+  const data = await res.json();
+
+  document.getElementById(logs).textContent =
+    Status  + data.status + nn + data.logs.join();
+}
+
+async function stopBot(id) {
+  await fetch(stop + id, {
+    method POST
+  });
+
+  loadBots();
+  loadLogs();
+}
+
+setInterval(() = {
+  loadBots();
+  loadLogs();
+}, 3000);
+
+loadBots();
+script
+
+body
+html
